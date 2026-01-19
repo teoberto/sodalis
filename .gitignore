@@ -1,0 +1,26 @@
+# Ambiente virtual
+.venv/
+venv/
+ENV/
+
+# Arquivos Python compilados
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Variáveis de ambiente sensíveis
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Instruções locais (seu conhecimento privado)
+.github/instructions/

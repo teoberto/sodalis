@@ -1,6 +1,10 @@
 ---
 applyTo: '**'
 ---
+# Orientações
+
+Não crie coisas baseadas na especificação ainda, pois solicitarei isso depois. Apenas guarde esta especificação como referência.
+
 # Eu
 
 Eu estou fazendo um software para como projeto final do CS50. Quero aprender durante o processo cada ponto.
