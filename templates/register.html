@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Registrar
+{% endblock %}
+
+{% block main %}
+    <h2>Registrar uma nova conta</h2>
+    <br>
+    <form action="/register" method="post" id="registerForm">
+        <div class="mb-3">
+            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" name="nome" placeholder="Nome completo" type="text" required>
+        </div>
+        <div class="mb-3">            
+            <input autocomplete="off" class="form-control mx-auto w-auto" name="email" placeholder="Email" type="email" required>
+        </div>
+        <div class="mb-3">
+            <input 
+                autocomplete="off" 
+                class="form-control mx-auto w-auto" 
+                id="nr_telefone"
+                name="nr_telefone" 
+                placeholder="+55 (00) 00000-0000" 
+                type="text"
+                value="+55 "
+                required>
+            <input type="hidden" id="nr_telefone_limpo" name="nr_telefone">
+        </div>
+
+        <div class="mb-3">
+            <input class="form-control mx-auto w-auto" name="password" placeholder="Senha" type="password" required>
+        </div>
+        <div class="mb-3">
+            <input class="form-control mx-auto w-auto" name="confirmation" placeholder="Repita a Senha" type="password" required>
+        </div>
+        <button class="btn btn-primary" type="submit">Registrar</button>
+    </form>
+
+    <script src="https://unpkg.com/imask"></script>
+    <script>
+        const phoneInput = document.getElementById('nr_telefone');
+        const maskOptions = {
+            mask: '+55 (00) 00000-0000',
+            lazy: false
+        };
+        const mask = IMask(phoneInput, maskOptions);
+
+        // Remove formatação antes de enviar
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            const telefone = mask.unmaskedValue;
+            document.getElementById('nr_telefone_limpo').value = '+55' + telefone;
+            phoneInput.disabled = true; // Desabilita campo formatado
+        });
+    </script>
+{% endblock %}

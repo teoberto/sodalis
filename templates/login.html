@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Log In
+{% endblock %}
+
+{% block main %}
+    <form action="/login" method="post" id="loginForm">
+        <div class="mb-3">
+            <input 
+                autocomplete="off" 
+                class="form-control mx-auto w-auto" 
+                id="nr_telefone"
+                name="nr_telefone" 
+                placeholder="+55 (00) 00000-0000" 
+                type="text"
+                value="+55 "
+                required>
+            <input type="hidden" id="nr_telefone_limpo" name="nr_telefone">
+        </div>
+        <div class="mb-3">
+            <input class="form-control mx-auto w-auto" name="password" placeholder="Password" type="password">
+        </div>
+        <button class="btn btn-primary" type="submit">Log In</button>
+    </form>
+
+    <script src="https://unpkg.com/imask"></script>
+    <script>
+        const phoneInput = document.getElementById('nr_telefone');
+        const mask = IMask(phoneInput, {
+            mask: '+55 (00) 00000-0000',
+            lazy: false
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            document.getElementById('nr_telefone_limpo').value = '+55' + mask.unmaskedValue;
+            phoneInput.disabled = true;
+        });
+    </script>
+{% endblock %}

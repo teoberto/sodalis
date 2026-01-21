@@ -9,9 +9,8 @@ Table usuario {
   id_usuario integer [primary key, increment]
   nome varchar [not null]
   email varchar [not null, unique]
-  cd_pais integer [not null, default: 55]
-  cd_ddd integer [not null]
   nr_telefone_celular varchar [not null, unique]
+  hash varchar
   dt_primeiro_cadastro timestamp [default: `CURRENT_TIMESTAMP`]
 }
 
@@ -33,6 +32,10 @@ Table composicao {
   id_usuario integer [not null]
   id_funcao integer [not null]
   dt_inclusao timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (id_comunidade, id_usuario) [unique]
+  }
 }
 
 // ============================================
@@ -98,10 +101,15 @@ Table atribuicao_tarefa {
 }
 
 Table responsavel_tarefa {
+  id_responsavel_tarefa integer [primary key, increment]
   id_atribuicao integer [not null]
   id_usuario integer [not null]
   eh_principal boolean [default: false]
   dt_inclusao timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (id_atribuicao, id_usuario) [unique]
+  }
 }
 
 // ============================================
@@ -116,7 +124,7 @@ Table tipo_periodicidade {
 
 Table periodicidade {
   id_periodicidade integer [primary key, increment]
-  id_atribuicao integer [not null]
+  id_responsavel_tarefa integer [not null]
   id_tipo_periodicidade integer [not null]
   dias_intervalo integer [note: 'Para "A cada N dias"']
   data_especifica date [note: 'Para "Data Específica" (ex: 25/01/2026)']
@@ -130,22 +138,22 @@ Table periodicidade {
 
 Table configuracao_notificacao {
   id_config_notificacao integer [primary key, increment]
-  id_atribuicao integer [not null]
-  id_usuario_responsavel integer [not null]
+  id_responsavel_tarefa integer [not null]
   frequencia_notificacao varchar [not null, note: 'Diária, A cada 2 dias, Semanal, etc']
   horario_notificacao time [note: 'Hora para enviar a notificação']
   ativo boolean [default: true]
   dt_criacao timestamp [default: `CURRENT_TIMESTAMP`]
+
 }
 
 Table historico_notificacao {
   id_historico integer [primary key, increment]
   id_config_notificacao integer [not null]
-  id_usuario_responsavel integer [not null]
   data_envio timestamp
   status varchar [not null, note: 'enviada, falha, pendente']
   tarefas_incluidas text [note: 'JSON array com IDs das tarefas enviadas']
   dt_criacao timestamp [default: `CURRENT_TIMESTAMP`]
+
 }
 
 // ============================================
@@ -168,10 +176,8 @@ Ref: "comunidade"."id_comunidade" < "atribuicao_tarefa"."id_comunidade"
 Ref: "atribuicao_tarefa"."id_atribuicao" < "responsavel_tarefa"."id_atribuicao"
 Ref: "usuario"."id_usuario" < "responsavel_tarefa"."id_usuario"
 
-Ref: "atribuicao_tarefa"."id_atribuicao" < "periodicidade"."id_atribuicao"
+Ref: "responsavel_tarefa"."id_responsavel_tarefa" < "periodicidade"."id_responsavel_tarefa"
 Ref: "tipo_periodicidade"."id_tipo_periodicidade" < "periodicidade"."id_tipo_periodicidade"
 
-Ref: "atribuicao_tarefa"."id_atribuicao" < "configuracao_notificacao"."id_atribuicao"
-Ref: "usuario"."id_usuario" < "configuracao_notificacao"."id_usuario_responsavel"
+Ref: "responsavel_tarefa"."id_responsavel_tarefa" < "configuracao_notificacao"."id_responsavel_tarefa"
 Ref: "configuracao_notificacao"."id_config_notificacao" < "historico_notificacao"."id_config_notificacao"
-Ref: "usuario"."id_usuario" < "historico_notificacao"."id_usuario_responsavel"
