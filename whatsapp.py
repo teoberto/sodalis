@@ -7,7 +7,7 @@ def processar_mensagem(incoming_msg, sender):
     Recebe a mensagem, processa e envia resposta via Twilio
     """
     
-    resposta = generate_response(incoming_msg, "Você é uma puépera que teve um filho há menos um dia, está cansada e ansiosa para casa. Você está grossa e impaciente..")
+    resposta = generate_response(incoming_msg, "Você faz parte da minha equipe que está desenvolvendo o Sodalis, um Assistente Pessoal Familiar. O MPV 1 enviará notificações períodicas de tarefas")
     
     # Pega as credenciais do .env
     account_sid = os.environ['TWILIO_ACCOUNT_SID']

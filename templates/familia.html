@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Família
+{% endblock %}
+
+{% block main %}
+    <h1>Família</h1>
+    <br>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Telefone</th>
+                <th>E-mail</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for membro in familia %}
+            <tr>
+                <td>{{membro["nome"]}}</td>
+                <td>{{membro["nr_telefone"]}}</td>
+                <td>{{membro["email"]}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>    
+{% endblock %}

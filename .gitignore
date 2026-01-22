@@ -24,3 +24,6 @@ Thumbs.db
 
 # Instruções locais (seu conhecimento privado)
 .github/instructions/
+
+# Sessões flask
+flask_session/

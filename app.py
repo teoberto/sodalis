@@ -4,6 +4,7 @@ from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
 from helper import apology, login_required, validar_email, validar_telefone_e164
 from sqlalchemy import create_engine, text
+from whatsapp import processar_mensagem
 from werkzeug.security import check_password_hash, generate_password_hash
 
 # Load environment variables
@@ -38,7 +39,7 @@ def after_request(response):
 @login_required
 def index():
     """Dashboard principal"""
-    return render_template("index.html")
+    return render_template("familia.html")
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -136,6 +137,34 @@ def register():
     
     return render_template("register.html")
 
-# modo debuter provisorio
-if __name__ == "__main__":
-    app.run(debug=True)
+
+@app.route("/familia")
+@login_required
+def familia():
+    print("FAMILIA ##############  ANTES ")
+
+    with engine.connect() as connection:
+        result = connection.execute(
+            text("""
+                SELECT usuario.* FROM public.usuario usuario
+                WHERE 
+                    id_usuario in 
+                    (SELECT id_usuario FROM public.composicao WHERE id_comunidade in (
+                    SELECT id_comunidade FROM public.composicao WHERE id_usuario = :id_usuario))"""),
+            {"id_usuario": session["user_id"]}
+        )
+        familia = result.mappings().fetchall()
+        print("FAMILIA ############## ", familia)
+
+    return render_template("familia.html", familia=familia)
+
+@app.route("/webhook", methods=["POST"])
+def webhook():
+    incoming_msg = request.values.get('Body', '')
+    sender = request.values.get('From', '')
+    processar_mensagem(incoming_msg, sender)
+    return "OK", 200
+
+# # modo debuter provisorio
+# if __name__ == "__main__":
+#     app.run(debug=True)
