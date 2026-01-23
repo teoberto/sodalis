@@ -173,6 +173,6 @@ def webhook():
 
 
 
-# modo debuter provisorio
-if __name__ == "__main__":
-    app.run(debug=True)
+# # modo debuter provisorio
+# if __name__ == "__main__":
+#     app.run(debug=True)
