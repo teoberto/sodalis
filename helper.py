@@ -60,3 +60,13 @@ def validar_telefone_e164(telefone):
     """
     padrao = r'^\+[1-9]\d{1,14}$'
     return re.match(padrao, telefone) is not None
+
+
+def formatar_telefone_whatsapp(nr_telefone):
+    """
+    Converte +5561981956970 para +556181956970 (remove 9º dígito)
+    """
+    if nr_telefone.startswith('+55') and len(nr_telefone) == 14:
+        # +55 61 9 81956970 -> +55 61 81956970
+        return nr_telefone[:5] + nr_telefone[6:]
+    return nr_telefone

@@ -2,7 +2,8 @@ import os
 from dotenv import load_dotenv
 from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
-from helper import apology, login_required, validar_email, validar_telefone_e164
+from helper import apology, login_required, validar_email, validar_telefone_e164, formatar_telefone_whatsapp
+from jobs.scheduler import iniciar_scheduler
 from sqlalchemy import create_engine, text
 from whatsapp import processar_mensagem
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -19,7 +20,11 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0 # producao 3600
+
 Session(app)
+
+# Iniciar scheduler
+scheduler = iniciar_scheduler()
 
 # Database setup
 DATABASE_URL = os.environ["DATABASE_URL"]
@@ -92,6 +97,7 @@ def register():
         nome = request.form.get("nome")
         email = request.form.get("email")
         nr_telefone = request.form.get("nr_telefone")
+        nr_whatsapp = formatar_telefone_whatsapp(nr_telefone)
         password = request.form.get("password")
         confirmation = request.form.get("confirmation")
 
@@ -127,8 +133,8 @@ def register():
 
             # Inserir usuário
             connection.execute(
-                text("INSERT INTO public.usuario(nome, email, nr_telefone, hash) VALUES (:nome, :email, :nr_telefone, :hash)"),
-                {"nome": nome, "email": email, "nr_telefone": nr_telefone, "hash": hash}
+                text("INSERT INTO public.usuario(nome, email, nr_telefone, hash, nr_whatsapp) VALUES (:nome, :email, :nr_telefone, :hash, :nr_whatsapp)"),
+                {"nome": nome, "email": email, "nr_telefone": nr_telefone, "hash": hash, "nr_whatsapp": nr_whatsapp}
             )
             connection.commit()
 
@@ -165,6 +171,8 @@ def webhook():
     processar_mensagem(incoming_msg, sender)
     return "OK", 200
 
-# # modo debuter provisorio
-# if __name__ == "__main__":
-#     app.run(debug=True)
+
+
+# modo debuter provisorio
+if __name__ == "__main__":
+    app.run(debug=True)
