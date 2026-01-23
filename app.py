@@ -23,8 +23,9 @@ app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0 # producao 3600
 
 Session(app)
 
-# Iniciar scheduler
-scheduler = iniciar_scheduler()
+# # Iniciar scheduler apenas em produção
+# if not app.debug:
+#     scheduler = iniciar_scheduler()
 
 # Database setup
 DATABASE_URL = os.environ["DATABASE_URL"]
@@ -43,8 +44,9 @@ def after_request(response):
 @app.route("/")
 @login_required
 def index():
-    """Dashboard principal"""
-    return render_template("familia.html")
+    if session.get("user_id"):
+        return redirect("/minhas-tarefas")
+    return redirect("/login")
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -147,12 +149,14 @@ def register():
 @app.route("/familia")
 @login_required
 def familia():
-    print("FAMILIA ##############  ANTES ")
 
     with engine.connect() as connection:
         result = connection.execute(
             text("""
-                SELECT usuario.* FROM public.usuario usuario
+                SELECT usuario.id_usuario,
+                INITCAP(SPLIT_PART(usuario.nome, ' ', 1)) as nome,
+                usuario.nr_telefone
+                FROM public.usuario usuario
                 WHERE 
                     id_usuario in 
                     (SELECT id_usuario FROM public.composicao WHERE id_comunidade in (
@@ -160,7 +164,6 @@ def familia():
             {"id_usuario": session["user_id"]}
         )
         familia = result.mappings().fetchall()
-        print("FAMILIA ############## ", familia)
 
     return render_template("familia.html", familia=familia)
 
@@ -172,7 +175,23 @@ def webhook():
     return "OK", 200
 
 
+@app.route("/minhas-tarefas")
+@login_required
+def minhas_tarefas():
 
-# # modo debuter provisorio
-# if __name__ == "__main__":
-#     app.run(debug=True)
+    with engine.connect() as connection:
+        result = connection.execute(
+            text("""
+                SELECT * FROM tarefa
+                LEFT JOIN atribuicao ON atribuicao.id_tarefa = tarefa.id_tarefa
+                WHERE atribuicao.id_usuario = :id_usuario"""),
+            {"id_usuario": session["user_id"]}
+        )
+        tarefas = result.mappings().fetchall()
+
+    return render_template("minhas_tarefas.html", tarefas=tarefas)
+
+
+# modo debuter provisorio
+if __name__ == "__main__":
+    app.run(debug=True)

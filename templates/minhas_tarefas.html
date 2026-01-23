@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Minhas Tarefas
+{% endblock %}
+
+{% block main %}
+    <h1>Minhas Tarefas</h1>
+    <br>
+    <table class="table table-striped table-hover" >
+        <tbody>
+            {% for tarefa in tarefas %}
+            <tr>
+                <td>{{tarefa["nm_tarefa"]}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>    
+{% endblock %}

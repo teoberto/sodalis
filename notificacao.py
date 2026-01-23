@@ -31,7 +31,7 @@ def enviar_notificacao_diaria():
         mensagem += f"\n\n_Reflexão do dia_: {motivacional}"
         
         enviar_whatsapp(f"whatsapp:{nr_whatsapp}", mensagem)
-        print(f"✅ Enviado para {nr_whatsapp} ({nome}):\n{mensagem}\n")
+        print(f"✅ Enviado para {nr_whatsapp} ({nome}):\n")
         time.sleep(1)  # Pausa de 1 segundo entre mensagens
 
 
