@@ -32,6 +32,12 @@ DATABASE_URL = os.environ["DATABASE_URL"]
 engine = create_engine(DATABASE_URL)
 
 
+# Adicionar filtro Jinja para formatação
+@app.template_filter('regex_replace')
+def regex_replace(s, find, replace):
+    import re
+    return re.sub(find, replace, s)
+
 @app.after_request
 def after_request(response):
     """Ensure responses aren't cached"""
@@ -155,7 +161,8 @@ def familia():
             text("""
                 SELECT usuario.id_usuario,
                 INITCAP(SPLIT_PART(usuario.nome, ' ', 1)) as nome,
-                usuario.nr_telefone
+                usuario.nr_telefone,
+                usuario.nr_whatsapp
                 FROM public.usuario usuario
                 WHERE 
                     id_usuario in 

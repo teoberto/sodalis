@@ -28,9 +28,14 @@
                 <div class="collapse navbar-collapse" id="navbar">
                     {% if session["user_id"] %}
                         <ul class="navbar-nav me-auto mt-2">
-                            <li class="nav-item"><a class="nav-link" href="/minhas-tarefas">Minhas tarefas</a></li>
-
-                            <li class="nav-item"><a class="nav-link" href="/familia">Família</a></li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.path == '/minhas-tarefas' %}active fw-bold{% endif %}" 
+                                   href="/minhas-tarefas">Minhas tarefas</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.path == '/familia' %}active fw-bold{% endif %}" 
+                                   href="/familia">Família</a>
+                            </li>
                         </ul>                        
                         <ul class="navbar-nav ms-auto mt-2">
                             <li class="nav-item"><a class="nav-link" href="/logout">Sair</a></li>
@@ -64,11 +69,10 @@
             <form action="https://validator.w3.org/check" class="text-center" enctype="multipart/form-data" method="post" target="_blank">
                 <input name="doctype" type="hidden" value="HTML5">
                 <input name="fragment" type="hidden">
-                <input alt="Validate" src="/static/I_heart_validator.png" type="image"> <!-- https://validator.w3.org/ -->
+                <input alt="Validate" src="/static/I_heart_validator.png" type="image">
             </form>
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
-                    // Adapted from https://stackoverflow.com/a/10162353
                     const html = '<!DOCTYPE ' +
                     document.doctype.name +
                     (document.doctype.publicId ? ' PUBLIC "' + document.doctype.publicId + '"' : '') +

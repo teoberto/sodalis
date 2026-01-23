@@ -5,22 +5,33 @@
 {% endblock %}
 
 {% block main %}
-    <h1>Família</h1>
-    <br>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Nome</th>
-                <th>Telefone</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for membro in familia %}
-            <tr>
-                <td>{{membro["nome"]}}</td>
-                <td>{{membro["nr_telefone"]}}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>    
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Nome</th>
+                    <th>Telefone</th>
+                    <th class="text-center">WhatsApp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for membro in familia %}
+                <tr>
+                    <td>{{ membro["nome"] }}</td>
+                    <td>
+                        {{ membro["nr_telefone"]|replace('+55', '')|regex_replace('(\d{2})(\d{5})(\d{4})', '(\\1) \\2-\\3') }}
+                    </td>
+                    <td class="text-center">
+                        <a href="https://wa.me/{{ membro['nr_whatsapp'] }}?text=Olá,%20te%20encontrei%20no%20SodAlis!%20" 
+                           target="_blank" 
+                           class="btn btn-success btn-sm">
+                            <i class="bi bi-whatsapp"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 {% endblock %}
