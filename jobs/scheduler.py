@@ -11,24 +11,18 @@ def iniciar_scheduler():
     # Notificação às 8h
     scheduler.add_job(
         func=enviar_notificacao_diaria,
-        trigger=CronTrigger(hour=9, minute=21, timezone=TIMEZONE),
+        trigger=CronTrigger(hour=8, minute=21, timezone=TIMEZONE),
         id='notificacao_1'
     )
     
-    # Notificação às 9h
+    # Executar a cada 1 minuto (para testes)
     scheduler.add_job(
         func=enviar_notificacao_diaria,
-        trigger=CronTrigger(hour=9, minute=22, timezone=TIMEZONE),
-        id='notificacao_2'
-    )
-    
+        trigger="interval",
+        minutes=1,
+        id='lembretes_tarefas'
+    )    
 
-    scheduler.add_job(
-        func=enviar_notificacao_diaria,
-        trigger=CronTrigger(hour=9, minute=23, timezone=TIMEZONE),
-        id='notificacao_3'
-    )
-    
     scheduler.start()
     # Listar jobs ativos
     jobs = scheduler.get_jobs()
