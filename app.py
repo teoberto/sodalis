@@ -24,8 +24,7 @@ app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0 # producao 3600
 Session(app)
 
 # # Iniciar scheduler apenas em produção
-# if not app.debug:
-#     scheduler = iniciar_scheduler()
+scheduler = iniciar_scheduler()
 
 # Database setup
 DATABASE_URL = os.environ["DATABASE_URL"]
@@ -309,6 +308,6 @@ def excluir_tarefa(id_tarefa):
     flash("Tarefa excluída com sucesso!", "success")
     return redirect("/minhas-tarefas")
 
-# modo debuter provisorio
-if __name__ == "__main__":
-    app.run(debug=True)
+# # modo debuter provisorio
+# if __name__ == "__main__":
+#     app.run(debug=True)
