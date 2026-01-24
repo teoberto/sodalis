@@ -129,22 +129,55 @@ def register():
 
         # Verificar duplicatas
         with engine.connect() as connection:
-            result = connection.execute(
-                text("SELECT email, nr_telefone FROM public.usuario WHERE email = :email OR nr_telefone = :nr_telefone"),
-                {"email": email, "nr_telefone": nr_telefone}
-            )
-            usuario_existente = result.fetchone()
-            
-            if usuario_existente:
-                flash("E-mail ou telefone já cadastrado.", "danger")
-                return render_template("register.html", nome=nome, email=email, nr_telefone=nr_telefone), 400
+            trans = connection.begin()
 
-            # Inserir usuário
-            connection.execute(
-                text("INSERT INTO public.usuario(nome, email, nr_telefone, hash, nr_whatsapp) VALUES (:nome, :email, :nr_telefone, :hash, :nr_whatsapp)"),
-                {"nome": nome, "email": email, "nr_telefone": nr_telefone, "hash": hash, "nr_whatsapp": nr_whatsapp}
-            )
-            connection.commit()
+            try:
+
+                result = connection.execute(
+                    text("SELECT email, nr_telefone FROM public.usuario WHERE email = :email OR nr_telefone = :nr_telefone"),
+                    {"email": email, "nr_telefone": nr_telefone}
+                )
+                usuario_existente = result.fetchone()
+                
+                if usuario_existente:
+                    flash("E-mail ou telefone já cadastrado.", "danger")
+                    return render_template("register.html", nome=nome, email=email, nr_telefone=nr_telefone), 400
+                
+                # 1. Criar comunidade pessoal primeiro
+                result = connection.execute(
+                    text(f"INSERT INTO comunidade(nm_comunidade) VALUES ('Pessoal') RETURNING id_comunidade"),
+                    {}
+                )
+                id_comunidade_pessoal = result.fetchone()[0]
+                
+                # 2. Criar usuário vinculado a comunidade pessoal
+                result = connection.execute(
+                    text("""
+                        INSERT INTO usuario(nome, email, nr_telefone, hash, nr_whatsapp, id_comunidade_pessoal) 
+                        VALUES (:nome, :email, :nr_telefone, :hash, :nr_whatsapp, :id_comunidade_pessoal) 
+                        RETURNING id_usuario
+                    """),
+                    {
+                        "nome": nome, 
+                        "email": email, 
+                        "nr_telefone": nr_telefone, 
+                        "hash": hash, 
+                        "nr_whatsapp": nr_whatsapp,
+                        "id_comunidade_pessoal": id_comunidade_pessoal
+                    }
+                )
+                id_usuario = result.fetchone()[0]
+                
+                # 3. Vincular usuário à comunidade pessoal
+                connection.execute(
+                    text("INSERT INTO composicao(id_comunidade, id_usuario) VALUES (:id_comunidade, :id_usuario)"),
+                    {"id_comunidade": id_comunidade_pessoal, "id_usuario": id_usuario}
+                )
+                
+                trans.commit()            
+            except:
+                trans.rollback()
+                raise
 
         flash("Registro realizado com sucesso! Pode fazer o login.", "success")
         return redirect("/login")
@@ -198,6 +231,83 @@ def minhas_tarefas():
 
     return render_template("minhas_tarefas.html", tarefas=tarefas)
 
+
+
+@app.route("/minhas-tarefas/nova", methods=["GET", "POST"])
+@login_required
+def nova_tarefa():
+    
+    if request.method == "POST":
+        nm_tarefa = request.form.get("nm_tarefa")
+        
+        if not nm_tarefa:
+            flash("O nome da tarefa é obrigatório.", "danger")
+            return render_template("nova_tarefa.html")
+        
+        with engine.connect() as connection:
+            trans = connection.begin()
+            
+            try:
+                # 1. Buscar comunidade pessoal do usuário
+                result = connection.execute(
+                    text("SELECT id_comunidade_pessoal FROM usuario WHERE id_usuario = :id_usuario"),
+                    {"id_usuario": session["user_id"]}
+                )
+                id_comunidade_pessoal = result.fetchone()[0]
+                
+                # 2. Inserir tarefa
+                result = connection.execute(
+                    text("INSERT INTO tarefa (nm_tarefa, id_comunidade) VALUES (:nm_tarefa, :id_comunidade) RETURNING id_tarefa"),
+                    {"nm_tarefa": nm_tarefa, "id_comunidade": id_comunidade_pessoal}
+                )
+                id_tarefa = result.fetchone()[0]
+                
+                # 3. Criar atribuição
+                connection.execute(
+                    text("""
+                        INSERT INTO atribuicao (id_usuario, id_comunidade, id_tarefa, id_periodicidade) 
+                        VALUES (:id_usuario, :id_comunidade, :id_tarefa, 1)
+                    """),
+                    {
+                        "id_usuario": session["user_id"],
+                        "id_comunidade": id_comunidade_pessoal,
+                        "id_tarefa": id_tarefa
+                    }
+                )
+                
+                trans.commit()
+                
+            except:
+                trans.rollback()
+                raise
+        
+        flash("Tarefa criada com sucesso!", "success")
+        return redirect("/minhas-tarefas")
+    
+    return render_template("nova_tarefa.html")
+
+
+@app.route("/minhas-tarefas/<int:id_tarefa>/excluir", methods=["POST"])
+@login_required
+def excluir_tarefa(id_tarefa):
+    
+    with engine.connect() as connection:
+        trans = connection.begin()
+        
+        connection.execute(
+            text("DELETE FROM atribuicao WHERE id_tarefa = :id_tarefa"),
+            {"id_tarefa": id_tarefa}
+        )
+        
+        connection.execute(
+            text("DELETE FROM tarefa WHERE id_tarefa = :id_tarefa"),
+            {"id_tarefa": id_tarefa}
+        )
+        
+        trans.commit()
+    
+    flash("Tarefa excluída com sucesso!", "success")
+    return redirect("/minhas-tarefas")
 
 # modo debuter provisorio
 if __name__ == "__main__":
