@@ -19,7 +19,7 @@ def iniciar_scheduler():
     scheduler.add_job(
         func=enviar_notificacao_diaria,
         trigger="interval",
-        minutes=1,
+        minutes=60,
         id='lembretes_tarefas'
     )    
 
@@ -33,4 +33,5 @@ def iniciar_scheduler():
     
     atexit.register(lambda: scheduler.shutdown())
     
+
     return scheduler
