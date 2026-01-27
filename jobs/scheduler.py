@@ -33,4 +33,5 @@ def iniciar_scheduler():
     
     atexit.register(lambda: scheduler.shutdown())
     
+
     return scheduler
