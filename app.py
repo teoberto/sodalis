@@ -172,7 +172,18 @@ def register():
                     text("INSERT INTO composicao(id_comunidade, id_usuario) VALUES (:id_comunidade, :id_usuario)"),
                     {"id_comunidade": id_comunidade_pessoal, "id_usuario": id_usuario}
                 )
-                
+
+
+                # 4. Inserir horário de notificação padrão (8:00 ativo)
+                connection.execute(
+                        text("""
+                            INSERT INTO notificacao_horario (id_usuario, hora, minuto, ativo)
+                            VALUES (:id_usuario, :hora, :minuto, :ativo)
+                        """),
+                        {"id_usuario": id_usuario, "hora": 8, "minuto": 0, "ativo": False}
+                    )
+
+               
                 trans.commit()            
             except:
                 trans.rollback()
@@ -308,6 +319,117 @@ def excluir_tarefa(id_tarefa):
     flash("Tarefa excluída com sucesso!", "success")
     return redirect("/minhas-tarefas")
 
-# # modo debuter provisorio
-# if __name__ == "__main__":
-#     app.run(debug=True)
+
+
+@app.route("/minhas-tarefas/notificacao", methods=["GET", "POST"])
+@login_required
+def configurar_notificacao():
+    
+    if request.method == "POST":
+        id_texto_ia = request.form.get("id_texto_ia")
+        ativo = request.form.get("ativo") == "on"
+
+        # Validação: se ativo, tema é obrigatório
+        if ativo and not id_texto_ia:
+            flash("Para ativar as notificações, selecione um tema de reflexão.", "danger")
+            return redirect("/minhas-tarefas/notificacao")
+      
+
+        with engine.connect() as connection:
+            trans = connection.begin()
+            
+            try:
+                # 1. Atualizar/inserir horário
+                result = connection.execute(
+                    text("SELECT id_notificacao FROM notificacao_horario WHERE id_usuario = :id_usuario"),
+                    {"id_usuario": session["user_id"]}
+                )
+                existe_horario = result.fetchone()
+                
+                if existe_horario:
+                    connection.execute(
+                        text("""
+                            UPDATE notificacao_horario 
+                            SET ativo = :ativo
+                            WHERE id_usuario = :id_usuario
+                        """),
+                        {"ativo": ativo, "id_usuario": session["user_id"]}
+                    )
+                
+                # 2. Atualizar tema motivacional
+                if id_texto_ia:
+                    result = connection.execute(
+                        text("SELECT id_usuario FROM texto_ia_usuario WHERE id_usuario = :id_usuario"),
+                        {"id_usuario": session["user_id"]}
+                    )
+                    existe_tema = result.fetchone()
+                    
+                    if existe_tema:
+                        connection.execute(
+                            text("""
+                                UPDATE texto_ia_usuario 
+                                SET id_texto_ia = :id_texto_ia
+                                WHERE id_usuario = :id_usuario
+                            """),
+                            {"id_texto_ia": id_texto_ia, "id_usuario": session["user_id"]}
+                        )
+                    else:
+                        connection.execute(
+                            text("""
+                                INSERT INTO texto_ia_usuario (id_usuario, id_texto_ia)
+                                VALUES (:id_usuario, :id_texto_ia)
+                            """),
+                            {"id_usuario": session["user_id"], "id_texto_ia": id_texto_ia}
+                        )
+                
+                trans.commit()
+                
+            except:
+                trans.rollback()
+                raise
+        
+        flash("Configurações atualizadas com sucesso!", "success")
+        return redirect("/minhas-tarefas")
+    
+    # GET - buscar dados atuais
+    with engine.connect() as connection:
+        # Buscar horário atual
+        result = connection.execute(
+            text("""
+                SELECT COALESCE(ativo, true) as ativo 
+                FROM notificacao_horario 
+                WHERE id_usuario = :id_usuario
+            """),
+            {"id_usuario": session["user_id"]}
+        )
+        notificacao = result.mappings().fetchone()
+        
+        # Buscar tema atual
+        result = connection.execute(
+            text("""
+                SELECT ds_titulo FROM texto_ia WHERE id_texto_ia = (
+                SELECT id_texto_ia 
+                FROM texto_ia_usuario 
+                WHERE id_usuario = :id_usuario)
+            """),
+            {"id_usuario": session["user_id"]}
+        )
+        tema_atual = result.mappings().fetchone()
+        
+        # Buscar lista de temas
+        result = connection.execute(
+            text("SELECT id_texto_ia, ds_titulo FROM texto_ia ORDER BY ds_titulo")
+        )
+        temas = result.mappings().fetchall()
+    
+    return render_template(
+        "configurar_notificacao.html", 
+        notificacao=notificacao,
+        tema_atual=tema_atual,
+        temas=temas
+    )
+
+
+# modo debuter provisorio
+if __name__ == "__main__":
+    app.run(debug=True)

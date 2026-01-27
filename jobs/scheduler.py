@@ -8,20 +8,20 @@ TIMEZONE = 'America/Sao_Paulo'
 def iniciar_scheduler():
     scheduler = BackgroundScheduler(timezone=TIMEZONE)
     
-    # Notificação às 8h
+    # Notificação às 7h
     scheduler.add_job(
         func=enviar_notificacao_diaria,
-        trigger=CronTrigger(hour=8, minute=21, timezone=TIMEZONE),
-        id='notificacao_1'
+        trigger=CronTrigger(hour=7, minute=00, timezone=TIMEZONE),
+        id='notificacao_diaria_padrao'
     )
     
-    # Executar a cada 1 minuto (para testes)
-    scheduler.add_job(
-        func=enviar_notificacao_diaria,
-        trigger="interval",
-        minutes=1,
-        id='lembretes_tarefas'
-    )    
+    # # Executar a cada 1 minuto (para testes)
+    # scheduler.add_job(
+    #     func=enviar_notificacao_diaria,
+    #     trigger="interval",
+    #     minutes=1,
+    #     id='lembretes_tarefas'
+    # )    
 
     scheduler.start()
     # Listar jobs ativos

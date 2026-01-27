@@ -33,8 +33,6 @@ def enviar_notificacao_diaria():
 
         prompt_tema = prompt_tema.replace("{data_atual}", date.today().strftime("%Y-%m-%d"))
 
-        print(prompt_tema)
-
         # Gera reflexão UMA VEZ para todos os usuários
         motivacional = generate_response(
             "Gere uma reflexão diária de apenas uma única frase curta, citando a fonte no final da frase.", 
@@ -43,7 +41,7 @@ def enviar_notificacao_diaria():
 
                
         
-        mensagem = f"🏠 Bom dia!\n\n📋 Lembrete das tarefas diárias:\n\n"
+        mensagem = f"🏠 Bom dia!\n\n📋 Lembrete diário de tarefas:\n\n"
         mensagem += "\n".join([f"• {tarefa}" for tarefa in tarefas])
         mensagem += f"\n\n_Reflexão do dia_: {motivacional}"
         
