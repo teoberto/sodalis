@@ -1,6 +1,26 @@
+from dotenv import load_dotenv
 from flask import redirect, render_template, session
 from functools import wraps
+from sqlalchemy import create_engine, text
+import os
 import re
+
+# Load environment variables
+load_dotenv()
+
+
+DATABASE_URL = os.environ["DATABASE_URL"]
+
+
+class ConectaBancoDados:
+    def __init__(self):
+        self.engine = create_engine(DATABASE_URL)
+
+    def executar_query(self, query, parametros=None):
+        with self.engine.connect() as connection:
+            resultado = connection.execute(text(query), parametros or {})
+            return resultado.mappings().all()
+
 
 
 def apology(message, code=400):
